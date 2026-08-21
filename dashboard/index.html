@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Ejecutivo – Aeronáutica Civil de Colombia</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Google Fonts & Plotly.js -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body class="dark-theme">
+    <div class="app-container">
+        <!-- HEADER EJECUTIVO -->
+        <header class="navbar">
+            <div class="brand-container">
+                <div class="gov-logo">
+                    <span class="flag-stripe yellow"></span>
+                    <span class="flag-stripe blue"></span>
+                    <span class="flag-stripe red"></span>
+                </div>
+                <div class="brand-titles">
+                    <h1>Unidad Administrativa Especial de Aeronáutica Civil</h1>
+                    <h2>Sistema BI Ejecutivo de Movilidad Aérea Comercial – Origen-Destino</h2>
+                </div>
+            </div>
+            <div class="header-metadata">
+                <span class="status-badge live"><i class="dot"></i> Datos Oficiales UAEAC</span>
+                <span class="dataset-info">455,787 Registros | 2020 - 2026</span>
+            </div>
+        </header>
+
+        <!-- LAYOUT PRINCIPAL -->
+        <div class="main-layout">
+            <!-- BARRA LATERAL DE FILTROS GLOBALES -->
+            <aside class="sidebar-filters">
+                <div class="filter-header">
+                    <h3>Filtros Globales</h3>
+                    <button id="btn-reset-filters" class="btn-reset" title="Restablecer todos los filtros">↺ Limpiar</button>
+                </div>
+                <div class="filter-body">
+                    <div class="filter-group">
+                        <label for="filter-year">Año Operativo</label>
+                        <select id="filter-year" class="form-control">
+                            <option value="ALL">Todos los Años (2020-2026)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-month">Mes del Año</label>
+                        <select id="filter-month" class="form-control">
+                            <option value="ALL">Todos los Meses (1-12)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-trafico">Tipo de Tráfico</label>
+                        <select id="filter-trafico" class="form-control">
+                            <option value="ALL">Todos (Nacional / Int. / Esp.)</option>
+                            <option value="N">Nacional (N)</option>
+                            <option value="I">Internacional (I)</option>
+                            <option value="E">Especial (E)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-tipo-vuelo">Modalidad de Vuelo</label>
+                        <select id="filter-tipo-vuelo" class="form-control">
+                            <option value="ALL">Todas las Modalidades</option>
+                            <option value="R">Regular (R)</option>
+                            <option value="C">Charter (C)</option>
+                            <option value="T">Taxi Aéreo (T)</option>
+                            <option value="A">Adicional (A)</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-empresa">Empresa / Aerolínea</label>
+                        <select id="filter-empresa" class="form-control">
+                            <option value="ALL">Todas las Aerolíneas</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-origen">Ciudad de Origen</label>
+                        <select id="filter-origen" class="form-control">
+                            <option value="ALL">Todas las Ciudades Origen</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label for="filter-destino">Ciudad de Destino</label>
+                        <select id="filter-destino" class="form-control">
+                            <option value="ALL">Todas las Ciudades Destino</option>
+                        </select>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button id="btn-export-csv" class="btn-primary">📥 Exportar Datos (CSV)</button>
+                        <button id="btn-view-detail" class="btn-secondary">🔍 Ver Detalle de Registros</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- CONTENIDO DE VISTAS (TAB CONTENT) -->
+            <main class="content-area">
+                <!-- NAVEGACIÓN POR PESTAÑAS (5 VISTAS) -->
+                <nav class="tab-navigation">
+                    <button class="tab-btn active" data-tab="view-summary">📊 Resumen Ejecutivo</button>
+                    <button class="tab-btn" data-tab="view-passengers">✈️ Pasajeros</button>
+                    <button class="tab-btn" data-tab="view-routes">🗺️ Rutas y Aeropuertos</button>
+                    <button class="tab-btn" data-tab="view-companies">🏢 Empresas</button>
+                    <button class="tab-btn" data-tab="view-cargo">📦 Carga y Correo</button>
+                </nav>
+
+                <!-- VISTA 1: RESUMEN EJECUTIVO -->
+                <section id="view-summary" class="tab-pane active">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-icon pax-icon">👥</div>
+                            <div class="kpi-content">
+                                <span class="kpi-title">Total Pasajeros</span>
+                                <h3 id="kpi-total-pax" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Pasajeros Comerciales</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon cargo-icon">📦</div>
+                            <div class="kpi-content">
+                                <span class="kpi-title">Total Carga / Correo</span>
+                                <h3 id="kpi-total-cargo" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Toneladas Métricas</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon ops-icon">🛩️</div>
+                            <div class="kpi-content">
+                                <span class="kpi-title">Operaciones Registradas</span>
+                                <h3 id="kpi-total-ops" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Registros de Vuelo</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon air-icon">🏢</div>
+                            <div class="kpi-content">
+                                <span class="kpi-title">Empresas Operadoras</span>
+                                <h3 id="kpi-total-empresas" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Aerolíneas Activas</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-icon route-icon">📍</div>
+                            <div class="kpi-content">
+                                <span class="kpi-title">Rutas Comerciales</span>
+                                <h3 id="kpi-total-rutas" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Pares Origen-Destino</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-grid">
+                        <div class="chart-card full-width">
+                            <div class="chart-header">
+                                <h3>Evolución Temporal del Tráfico Aéreo (Pasajeros y Carga)</h3>
+                                <span class="chart-subtitle">Histórico mensual (2020 - 2026)</span>
+                            </div>
+                            <div id="chart-evolution-main" class="chart-body"></div>
+                        </div>
+
+                        <div class="chart-card half-width">
+                            <div class="chart-header">
+                                <h3>Distribución por Tipo de Tráfico</h3>
+                                <span class="chart-subtitle">Nacional vs Internacional vs Especial</span>
+                            </div>
+                            <div id="chart-trafico-donut" class="chart-body"></div>
+                        </div>
+
+                        <div class="chart-card half-width">
+                            <div class="chart-header">
+                                <h3>Top 10 Aerolíneas por Volumen de Pasajeros</h3>
+                                <span class="chart-subtitle">Participación acumulada</span>
+                            </div>
+                            <div id="chart-top-airlines-bar" class="chart-body"></div>
+                        </div>
+
+                        <div class="chart-card full-width">
+                            <div class="chart-header">
+                                <h3>Top 10 Rutas Aéreas con Mayor Movilidad en Colombia</h3>
+                                <span class="chart-subtitle">Pares de ciudades Origen - Destino</span>
+                            </div>
+                            <div id="chart-top-routes-bar" class="chart-body"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VISTA 2: PASAJEROS -->
+                <section id="view-passengers" class="tab-pane">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-content">
+                                <span class="kpi-title">Pasajeros Nacionales</span>
+                                <h3 id="kpi-pax-nacional" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Movilidad Interna</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-content">
+                                <span class="kpi-title">Pasajeros Internacionales</span>
+                                <h3 id="kpi-pax-internacional" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Tráfico Exterior</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-content">
+                                <span class="kpi-title">Promedio Mensual Pax</span>
+                                <h3 id="kpi-pax-promedio-mes" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Media Mensual</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-content">
+                                <span class="kpi-title">Cuota Aerolínea Líder</span>
+                                <h3 id="kpi-pax-cuota-lider" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Avianca Market Share</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-grid">
+                        <div class="chart-card full-width">
+                            <div class="chart-header">
+                                <h3>Comparativo Anual de Tráfico de Pasajeros (2020 - 2026)</h3>
+                                <span class="chart-subtitle">Crecimiento interanual por volumen</span>
+                            </div>
+                            <div id="chart-pax-annual-compare" class="chart-body"></div>
+                        </div>
+                        <div class="chart-card half-width">
+                            <div class="chart-header">
+                                <h3>Top 15 Ciudades de Origen por Pasajeros Salientes</h3>
+                                <span class="chart-subtitle">Concentración de salidas</span>
+                            </div>
+                            <div id="chart-pax-cities-orig" class="chart-body"></div>
+                        </div>
+                        <div class="chart-card half-width">
+                            <div class="chart-header">
+                                <h3>Distribución de Pasajeros por Modalidad de Vuelo</h3>
+                                <span class="chart-subtitle">Regular, Charter, Taxi Aéreo, Adicional</span>
+                            </div>
+                            <div id="chart-pax-flight-type" class="chart-body"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VISTA 3: RUTAS Y AEROPUERTOS -->
+                <section id="view-routes" class="tab-pane">
+                    <div class="chart-grid">
+                        <div class="chart-card full-width">
+                            <div class="chart-header">
+                                <h3>Matriz de Movilidad Aérea: Top 25 Rutas Origen - Destino</h3>
+                                <span class="chart-subtitle">Ranking ordenado por volumen de pasajeros</span>
+                            </div>
+                            <div id="chart-routes-matrix" class="chart-body"></div>
+                        </div>
+                        <div class="chart-card half-width">
+                            <div class="chart-header">
+                                <h3>Top 15 Aeropuertos de Origen con Mayor Flujo</h3>
+                                <span class="chart-subtitle">Siglas IATA principales</span>
+                            </div>
+                            <div id="chart-airports-orig" class="chart-body"></div>
+                        </div>
+                        <div class="chart-card half-width">
+                            <div class="chart-header">
+                                <h3>Top 15 Aeropuertos de Destino con Mayor Flujo</h3>
+                                <span class="chart-subtitle">Siglas IATA principales</span>
+                            </div>
+                            <div id="chart-airports-dest" class="chart-body"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VISTA 4: EMPRESAS -->
+                <section id="view-companies" class="tab-pane">
+                    <div class="chart-grid">
+                        <div class="chart-card full-width">
+                            <div class="chart-header">
+                                <h3>Ranking de Aerolíneas: Pasajeros vs Carga Transportada</h3>
+                                <span class="chart-subtitle">Desempeño operacional comparativo de las 20 principales aerolíneas</span>
+                            </div>
+                            <div id="chart-companies-scatter" class="chart-body"></div>
+                        </div>
+                        <div class="chart-card full-width">
+                            <div class="chart-header">
+                                <h3>Desglose de Operaciones por Aerolínea y Modalidad de Vuelo</h3>
+                                <span class="chart-subtitle">Distribución de vuelos Regulares, Charters y Taxi Aéreo</span>
+                            </div>
+                            <div id="chart-companies-types" class="chart-body"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VISTA 5: CARGA Y CORREO -->
+                <section id="view-cargo" class="tab-pane">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-content">
+                                <span class="kpi-title">Total Carga (Toneladas)</span>
+                                <h3 id="kpi-cargo-total-ton" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Carga de Pago + Correo</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-content">
+                                <span class="kpi-title">Carga Internacional</span>
+                                <h3 id="kpi-cargo-int-ton" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Exportación e Importación Aérea</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-content">
+                                <span class="kpi-title">Carga Nacional</span>
+                                <h3 id="kpi-cargo-nac-ton" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Cabotaje Aéreo</span>
+                            </div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-content">
+                                <span class="kpi-title">Aerolínea Carga Líder</span>
+                                <h3 id="kpi-cargo-lider" class="kpi-value">--</h3>
+                                <span class="kpi-sub">Copa Airlines (31.71%)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-grid">
+                        <div class="chart-card full-width">
+                            <div class="chart-header">
+                                <h3>Evolución Temporal de Carga y Correo (Toneladas)</h3>
+                                <span class="chart-subtitle">Tendencia histórica mensual (2020 - 2026)</span>
+                            </div>
+                            <div id="chart-cargo-evolution" class="chart-body"></div>
+                        </div>
+                        <div class="chart-card half-width">
+                            <div class="chart-header">
+                                <h3>Top 10 Empresas en Transporte de Carga y Correo</h3>
+                                <span class="chart-subtitle">Volumen total en Toneladas</span>
+                            </div>
+                            <div id="chart-cargo-top-companies" class="chart-body"></div>
+                        </div>
+                        <div class="chart-card half-width">
+                            <div class="chart-header">
+                                <h3>Distribución de Carga por Tipo de Tráfico</h3>
+                                <span class="chart-subtitle">Nacional vs Internacional vs Especial</span>
+                            </div>
+                            <div id="chart-cargo-trafico-donut" class="chart-body"></div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p>Unidad Administrativa Especial de Aeronáutica Civil (UAEAC) – República de Colombia | Sistema BI Ejecutivo</p>
+        </footer>
+    </div>
+
+    <!-- MODAL DE DETALLE DE DATOS -->
+    <div id="modal-detail" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h3>Detalle de Registros de Movilidad Aérea</h3>
+                <button id="btn-close-modal" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-controls">
+                    <input type="text" id="modal-search" placeholder="🔍 Buscar por ciudad, aerolínea o ruta..." class="form-control">
+                    <span id="modal-record-count">Mostrando 0 registros</span>
+                </div>
+                <div class="table-responsive">
+                    <table id="table-detail" class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Año</th>
+                                <th>Mes</th>
+                                <th>Tráfico</th>
+                                <th>Modalidad</th>
+                                <th>Aerolínea</th>
+                                <th>Origen</th>
+                                <th>Destino</th>
+                                <th>Pasajeros</th>
+                                <th>Carga (Kg)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-detail-body">
+                            <!-- Filas dinámicas -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 dashboard/js/data.json
 
 # ─── Datos procesados pesados ─────────────────────────────────────────────────
-data/processed/transporte_aereo_limpio.csv
+#data/processed/transporte_aereo_limpio.csv
 
 # ─── Entornos virtuales de Python ─────────────────────────────────────────────
 venv/

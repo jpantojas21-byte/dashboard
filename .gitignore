@@ -1,21 +1,27 @@
-# Python bytecode and caches
+# ─── Archivos grandes (superan límite de GitHub 100 MB) ───────────────────────
+dashboard/js/data.json
+
+# ─── Datos procesados pesados ─────────────────────────────────────────────────
+data/processed/transporte_aereo_limpio.csv
+
+# ─── Entornos virtuales de Python ─────────────────────────────────────────────
+venv/
+.venv/
+env/
+
+# ─── Caché de Python ──────────────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
-*$py.class
-.pytest_cache/
+*.pyo
 
-# Data files (optional ignore large raw excel or CSVs if needed, keep parquet and JSON)
-data/raw/*
-!data/raw/.gitkeep
+# ─── Jupyter ──────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
 
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
+# ─── Sistemas operativos ──────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
 
-# IDE files
+# ─── Editores ─────────────────────────────────────────────────────────────────
 .vscode/
 .idea/
 *.swp
